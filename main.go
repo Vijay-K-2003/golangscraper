@@ -36,7 +36,7 @@ func DiscoverLinks(response *http.Response, baseURL string) []string {
 	if response != nil {
 		doc, _ := goquery.NewDocumentFromResponse(response)
 		foundURLs := []string{}
-
+		fmt.Println(doc.Html())
 		if doc != nil {
 
 			doc.Find("a").Each(func(i int, s *goquery.Selection) {
@@ -101,7 +101,7 @@ func ResolveRelativeLinks(href string, baseURL string) (bool, string) {
 }
 
 func Crawl(targetURL string, baseURL string) []string {
-	fmt.Println("Crawling : ", targetURL)
+	// fmt.Println("Crawling : ", targetURL)
 
 	tokens <- struct{}{}
 
@@ -126,17 +126,22 @@ func Crawl(targetURL string, baseURL string) []string {
 
 func main() {
 	worklist := make(chan []string)
-	baseDomain := "https://www.theguardian.com"
-	go func() { worklist <- []string{"https://www.theguardian.com"} }()
+	baseDomain := "http://golang.org"
+	go func() { worklist <- []string{"http://golang.org"} }()
 	seen := make(map[string]bool)
 	n := 1
-
+	count := 0
 	for ; n > 0; n-- {
 		list := <-worklist
 		for _, link := range list {
 			if !seen[link] {
 				seen[link] = true
+				if count == 100 || count == 0 {
+					dt := time.Now()
+					fmt.Println("Current Date and Time is : ", dt.String())
+				}
 				n++
+				count = count + 1
 				go func(link string, baseURL string) {
 					foundLinks := Crawl(link, baseURL)
 
